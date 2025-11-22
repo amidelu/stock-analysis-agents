@@ -1,6 +1,7 @@
 # 🤖 AI Stock Prediction System: Multi-Agent A2A Architecture
 
 > **Kaggle 5-Day Agents Capstone Project**  
+> **Track**: Enterprise Agents  
 > By **Nishant Pithia & Vagge Sneha**
 
 Production-ready multi-agent stock prediction system using Google's Agent Development Kit (ADK) and A2A Protocol v0.3.0
@@ -422,3 +423,5 @@ Kaggle 5-Day Agents Intensive - Capstone Project
 ---
 
 **Built with ❤️ using Google ADK, Gemini, and the A2A Protocol**
+
+**Track**: Enterprise Agents
