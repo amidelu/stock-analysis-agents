@@ -15,6 +15,8 @@ Production-ready multi-agent stock prediction system using Google's Agent Develo
 
 A **production-grade multi-agent system** that analyzes stocks using **6 specialized AI agents** communicating via the **Agent-to-Agent (A2A) protocol**. Each agent is an expert in their domain, and a central orchestrator synthesizes their insights into actionable predictions with investor-friendly explanations.
 
+**🔗 Repository**: [https://github.com/nishapp/agents-5days-kaggle-competition](https://github.com/nishapp/agents-5days-kaggle-competition)
+
 ### 🏆 Key Features
 - ✅ **Full A2A Protocol v0.3.0** with JSONRPC transport
 - ✅ **4 Real Financial APIs** (Polygon.io, FRED, NewsAPI, SEC Edgar)
