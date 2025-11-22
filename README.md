@@ -178,6 +178,10 @@ The system delivers significant value for enterprise stock analysis workflows:
 - ✅ Modern Next.js frontend with real-time visualization
 - ✅ Comprehensive Jupyter notebook demonstration
 
+**🔗 Code Repository**: [https://github.com/nishapp/agents-5days-kaggle-competition](https://github.com/nishapp/agents-5days-kaggle-competition)
+
+**📓 Jupyter Notebook**: `notebooks/kaggle_submission_complete.ipynb` - Complete demonstration with live analysis
+
 ---
 
 ## 🚀 Quick Start
