@@ -108,16 +108,16 @@ export default function Home() {
           id: `${data.ticker}-${Date.now()}`,
           timestamp: new Date().toISOString(),
         };
-        
+
         const existingHistory = localStorage.getItem('analysis_history');
         const history = existingHistory ? JSON.parse(existingHistory) : [];
         history.unshift(historyEntry); // Add to beginning
-        
+
         // Keep only last 50 entries
         if (history.length > 50) {
           history.length = 50;
         }
-        
+
         localStorage.setItem('analysis_history', JSON.stringify(history));
       } catch (storageErr) {
         console.error('Failed to save to history:', storageErr);
@@ -132,9 +132,9 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ analysis: data }),
         });
-        
+
         const adviceData = await adviceResponse.json();
-        
+
         if (adviceResponse.ok) {
           setInvestorAdvice(adviceData.advice);
         } else {
@@ -186,7 +186,7 @@ export default function Home() {
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/3 rounded-full blur-3xl" />
       </div>
-      
+
       {/* Grid Pattern Overlay */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -208,7 +208,7 @@ export default function Home() {
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-sm text-blue-400 font-medium">Powered by AI Agents</span>
           </div>
-          
+
           {/* Title with LinkedIn Images on Sides */}
           <div className="flex items-center justify-center gap-4 mb-5 relative">
             {/* Left LinkedIn Image */}
@@ -238,13 +238,13 @@ export default function Home() {
                 Nishant Pithia
               </a>
             </div>
-            
+
             <Sparkles className="w-10 h-10 text-blue-500" />
             <h1 className="text-6xl md:text-7xl font-bold gradient-text tracking-tight">
               AI Stock Predictor
             </h1>
             <TrendingUp className="w-10 h-10 text-cyan-500" />
-            
+
             {/* Right LinkedIn Image */}
             <div className="absolute right-0 flex-shrink-0 hidden md:flex flex-col items-center gap-2">
               <a
@@ -273,7 +273,7 @@ export default function Home() {
               </a>
             </div>
           </div>
-          
+
           {/* Mobile LinkedIn Images */}
           <div className="flex items-center justify-center gap-6 mb-5 md:hidden">
             <div className="flex flex-col items-center gap-2">
@@ -329,7 +329,7 @@ export default function Home() {
               </a>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 mb-3">
             <p className="text-slate-300 text-lg md:text-xl font-light">
               Multi-Agent A2A Architecture powered by
@@ -340,7 +340,7 @@ export default function Home() {
                 alt="Google"
                 className="h-7 md:h-10 object-contain opacity-90 hover:opacity-100 transition-opacity"
               />
-              <span className="text-slate-300 text-lg md:text-xl font-light">Gemini</span>
+              <span className="text-slate-300 text-lg md:text-xl font-light">Gemini / Groq</span>
             </div>
             <span className="text-slate-500 hidden md:inline">•</span>
             <img
@@ -358,7 +358,7 @@ export default function Home() {
         {!isAnalyzing && !result && (
           <>
             <StockInput onAnalyze={handleAnalyze} isLoading={false} />
-            
+
             {/* Quick Actions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -456,10 +456,10 @@ export default function Home() {
                     result={result}
                     onReset={handleReset}
                   />
-                  
+
                   {/* TradingView Chart */}
                   <TradingViewWidget ticker={ticker} />
-                  
+
                   {/* Investor Advisor Card */}
                   <InvestorAdvisorCard
                     advice={investorAdvice}
@@ -467,7 +467,7 @@ export default function Home() {
                     error={adviceError}
                     ticker={ticker}
                   />
-                  
+
                   {/* Footer */}
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -475,7 +475,7 @@ export default function Home() {
                     transition={{ delay: 0.5 }}
                     className="text-center text-sm text-slate-500 mt-8 pt-6 border-t border-slate-800/50"
                   >
-                    <p className="font-medium">Analysis completed using A2A Protocol v0.3.0 • Powered by Google Gemini 2.0</p>
+                    <p className="font-medium">Analysis completed using A2A Protocol v0.3.0 • Powered by Google Gemini / Groq</p>
                     <p className="mt-2 text-xs">By Nishant Pithia & Vagge Sneha</p>
                   </motion.div>
                 </>

@@ -18,57 +18,57 @@ interface AgentExplanation {
   error?: string;
 }
 
-const AGENT_INFO: Record<string, { 
-  name: string; 
-  description: string; 
+const AGENT_INFO: Record<string, {
+  name: string;
+  description: string;
   color: string;
   role: string;
   prompt: string;
   inputDescription: string;
 }> = {
-  fundamental: { 
-    name: 'Fundamental Analyst', 
-    description: 'Financial metrics, valuation, and company fundamentals', 
+  fundamental: {
+    name: 'Fundamental Analyst',
+    description: 'Financial metrics, valuation, and company fundamentals',
     color: 'from-blue-500 to-cyan-500',
     role: 'Expert in company valuation and financial statement analysis. Analyzes financial health, valuation metrics (P/E, PEG, P/B), growth metrics, and quality factors.',
     prompt: 'You are an expert FUNDAMENTAL ANALYST specializing in company valuation and financial statement analysis. Analyze financial health (revenue growth, profitability, debt levels, liquidity), valuation (P/E, PEG, P/B ratios), growth metrics (YoY and QoQ growth in EPS, revenue, margins), and quality factors (management quality, competitive moats, business model sustainability). Always use get_fundamentals() and get_sec_filings() tools to fetch real data.',
     inputDescription: 'Ticker symbol and prediction horizon'
   },
-  technical: { 
-    name: 'Technical Analyst', 
-    description: 'Price action, momentum, and technical indicators', 
+  technical: {
+    name: 'Technical Analyst',
+    description: 'Price action, momentum, and technical indicators',
     color: 'from-green-500 to-emerald-500',
     role: 'Expert in price action, chart patterns, and momentum indicators. Analyzes trends, momentum indicators (RSI, MACD), support/resistance levels, volume patterns, and multi-timeframe analysis.',
     prompt: 'You are an expert TECHNICAL ANALYST specializing in price action, chart patterns, and momentum indicators. Analyze trend (bullish, bearish, sideways using moving averages), momentum indicators (RSI, MACD for overbought/oversold conditions), support/resistance levels, volume patterns, and multi-timeframe analysis (daily, weekly, monthly charts). Always use get_technical_indicators() and get_price_history() tools.',
     inputDescription: 'Ticker symbol and prediction horizon'
   },
-  sentiment: { 
-    name: 'Sentiment Analyst', 
-    description: 'News analysis and market sentiment', 
+  sentiment: {
+    name: 'Sentiment Analyst',
+    description: 'News analysis and market sentiment',
     color: 'from-purple-500 to-pink-500',
     role: 'Expert in news analysis and market sentiment. Analyzes recent news articles, social media sentiment, analyst ratings, and market psychology to gauge overall sentiment.',
     prompt: 'You are an expert SENTIMENT ANALYST specializing in news analysis and market sentiment. Analyze recent news articles (last 7 days), identify key events and their impact, assess sentiment (positive, neutral, negative), analyze analyst ratings and price targets, and evaluate market psychology. Always use get_recent_news() and analyze_sentiment() tools.',
     inputDescription: 'Ticker symbol and prediction horizon'
   },
-  macro: { 
-    name: 'Macro Analyst', 
-    description: 'Economic conditions and macro indicators', 
+  macro: {
+    name: 'Macro Analyst',
+    description: 'Economic conditions and macro indicators',
     color: 'from-orange-500 to-red-500',
     role: 'Expert in economic conditions and macro indicators. Analyzes interest rates, GDP growth, inflation, unemployment, and sector-specific economic factors.',
     prompt: 'You are an expert MACRO ANALYST specializing in economic conditions and macro indicators. Analyze interest rates and Fed policy, GDP growth and economic trends, inflation (CPI, PPI), unemployment rates, sector-specific economic factors, and how macro conditions affect the stock. Always use get_economic_indicators() and get_fed_policy() tools.',
     inputDescription: 'Ticker symbol and prediction horizon'
   },
-  regulatory: { 
-    name: 'Regulatory Analyst', 
-    description: 'Legal compliance and industry risks', 
+  regulatory: {
+    name: 'Regulatory Analyst',
+    description: 'Legal compliance and industry risks',
     color: 'from-yellow-500 to-amber-500',
     role: 'Expert in legal compliance and industry risks. Analyzes SEC filings, regulatory changes, compliance issues, industry-specific regulations, and legal risks.',
     prompt: 'You are an expert REGULATORY ANALYST specializing in legal compliance and industry risks. Analyze SEC filings (10-K, 10-Q, 8-K), identify regulatory changes affecting the industry, assess compliance issues and legal risks, evaluate industry-specific regulations, and assess potential legal challenges. Always use get_sec_filings() and analyze_regulatory_risks() tools.',
     inputDescription: 'Ticker symbol and prediction horizon'
   },
-  predictor: { 
-    name: 'Predictor Agent', 
-    description: 'ML-based synthesis and final prediction', 
+  predictor: {
+    name: 'Predictor Agent',
+    description: 'ML-based synthesis and final prediction',
     color: 'from-indigo-500 to-blue-500',
     role: 'CHIEF PREDICTION SYNTHESIZER responsible for generating the final stock recommendation. Synthesizes all 5 analysis reports, weights each analysis based on confidence score, applies ML model to generate prediction, calculates risk based on signal disagreement, and provides comprehensive rationale.',
     prompt: 'You are the CHIEF PREDICTION SYNTHESIZER responsible for generating the final stock recommendation. You receive analysis reports from 5 specialized agents (Fundamental, Technical, Sentiment, Macro, Regulatory). Your job is to: 1) Synthesize all 5 analysis reports into a unified view, 2) Weight each analysis based on its confidence score, 3) Apply ML model to generate a prediction (BUY/HOLD/SELL), 4) Calculate risk based on signal disagreement and market volatility, 5) Provide rationale explaining the key factors driving your decision.',
@@ -84,11 +84,11 @@ const getSignalColor = (signal: number) => {
 };
 
 // Predictor Card Component with Input/Output Icons
-function PredictorFlowCard({ 
-  entry, 
-  agents 
-}: { 
-  entry: AnalysisResult & { id: string; timestamp: string }; 
+function PredictorFlowCard({
+  entry,
+  agents
+}: {
+  entry: AnalysisResult & { id: string; timestamp: string };
   agents: [string, AgentResponse][];
 }) {
   const [isInputHovered, setIsInputHovered] = useState(false);
@@ -116,7 +116,7 @@ function PredictorFlowCard({
         {/* Icons Row */}
         <div className="flex items-center justify-between mt-4">
           {/* Input Icon */}
-          <div 
+          <div
             className="cursor-help relative"
             onMouseEnter={() => setIsInputHovered(true)}
             onMouseLeave={() => setIsInputHovered(false)}
@@ -143,7 +143,7 @@ function PredictorFlowCard({
                           <div className="text-slate-400 mt-1">
                             Signal: <span className={`font-mono ${getSignalColor(report.directional_signal)}`}>
                               {report.directional_signal > 0 ? '+' : ''}{report.directional_signal.toFixed(2)}
-                            </span> | 
+                            </span> |
                             Confidence: <span className="font-mono text-blue-400">{report.confidence_score}%</span>
                           </div>
                         </div>
@@ -157,7 +157,7 @@ function PredictorFlowCard({
           </div>
 
           {/* Output Icon */}
-          <div 
+          <div
             className="cursor-help relative"
             onMouseEnter={() => setIsOutputHovered(true)}
             onMouseLeave={() => setIsOutputHovered(false)}
@@ -178,11 +178,10 @@ function PredictorFlowCard({
                   <div className="text-xs text-slate-300 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500">Recommendation:</span>
-                      <span className={`font-bold text-lg ${
-                        entry.recommendation === 'BUY' ? 'text-green-400' :
-                        entry.recommendation === 'SELL' ? 'text-red-400' :
-                        'text-yellow-400'
-                      }`}>
+                      <span className={`font-bold text-lg ${entry.recommendation === 'BUY' ? 'text-green-400' :
+                          entry.recommendation === 'SELL' ? 'text-red-400' :
+                            'text-yellow-400'
+                        }`}>
                         {entry.recommendation}
                       </span>
                     </div>
@@ -192,11 +191,10 @@ function PredictorFlowCard({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Risk Level:</span>
-                      <span className={`font-mono font-semibold ${
-                        entry.risk_level === 'LOW' ? 'text-green-400' :
-                        entry.risk_level === 'HIGH' ? 'text-red-400' :
-                        'text-yellow-400'
-                      }`}>
+                      <span className={`font-mono font-semibold ${entry.risk_level === 'LOW' ? 'text-green-400' :
+                          entry.risk_level === 'HIGH' ? 'text-red-400' :
+                            'text-yellow-400'
+                        }`}>
                         {entry.risk_level}
                       </span>
                     </div>
@@ -223,17 +221,17 @@ function PredictorFlowCard({
 }
 
 // Agent Card Component with Input/Output Icons
-function AgentFlowCard({ 
-  agentId, 
-  report, 
-  agentInfo, 
-  entry, 
-  index 
-}: { 
-  agentId: string; 
-  report: AgentResponse; 
-  agentInfo: typeof AGENT_INFO[string]; 
-  entry: AnalysisResult & { id: string; timestamp: string }; 
+function AgentFlowCard({
+  agentId,
+  report,
+  agentInfo,
+  entry,
+  index
+}: {
+  agentId: string;
+  report: AgentResponse;
+  agentInfo: typeof AGENT_INFO[string];
+  entry: AnalysisResult & { id: string; timestamp: string };
   index: number;
 }) {
   const [isInputHovered, setIsInputHovered] = useState(false);
@@ -251,11 +249,11 @@ function AgentFlowCard({
         <div className="text-xs text-white font-semibold text-center truncate mb-2">
           {agentInfo.name.split(' ')[0]}
         </div>
-        
+
         {/* Icons Row */}
         <div className="flex items-center justify-between mt-auto">
           {/* Input Icon */}
-          <div 
+          <div
             className="cursor-help relative"
             onMouseEnter={() => setIsInputHovered(true)}
             onMouseLeave={() => setIsInputHovered(false)}
@@ -295,7 +293,7 @@ function AgentFlowCard({
           )}
 
           {/* Output Icon */}
-          <div 
+          <div
             className="cursor-help relative"
             onMouseEnter={() => setIsOutputHovered(true)}
             onMouseLeave={() => setIsOutputHovered(false)}
@@ -385,7 +383,7 @@ export default function AnalysisDetailView({ entry, onClose }: AnalysisDetailVie
       }
 
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.error);
       }
@@ -400,18 +398,18 @@ export default function AnalysisDetailView({ entry, onClose }: AnalysisDetailVie
       }));
     } catch (error: any) {
       console.error('Error fetching explanation:', error);
-      
+
       // Generate a fallback explanation from the data
       const signal = report.directional_signal || 0;
       const confidence = report.confidence_score || 0;
-      
+
       let signalText = '';
       if (signal > 0.3) signalText = 'strongly bullish (positive outlook)';
       else if (signal > 0) signalText = 'slightly bullish (cautiously positive)';
       else if (signal < -0.3) signalText = 'strongly bearish (negative outlook)';
       else if (signal < 0) signalText = 'slightly bearish (cautiously negative)';
       else signalText = 'neutral (no strong directional bias)';
-      
+
       const fallbackExplanation = `The ${AGENT_INFO[agentId]?.name || agentId} indicates a ${signalText} signal of ${signal.toFixed(3)} with ${confidence}% confidence. 
 
 This means the agent's analysis suggests ${signal > 0 ? 'positive' : signal < 0 ? 'negative' : 'neutral'} factors for ${entry.ticker}. The confidence level of ${confidence}% indicates ${confidence > 70 ? 'high certainty' : confidence > 50 ? 'moderate certainty' : 'low certainty'} in this assessment.
@@ -424,42 +422,42 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
           explanation: fallbackExplanation,
           agent_name: AGENT_INFO[agentId]?.name || agentId,
           loading: false,
-          error: error.message?.includes('fetch') || error.message?.includes('network') 
+          error: error.message?.includes('fetch') || error.message?.includes('network')
             ? 'Backend not available. Showing fallback explanation.'
             : undefined,
         }
       }));
     }
   };
-  
+
   const calculatePerformanceScore = () => {
     // Performance score based on multiple factors
     let score = 0;
     const maxScore = 100;
-    
+
     // Confidence contributes 40%
     score += (entry.confidence / 100) * 40;
-    
+
     // Agent consensus contributes 30% (lower variance = higher score)
     const signals = agents.map(([_, report]) => report.directional_signal);
     const avgSignal = signals.reduce((a, b) => a + b, 0) / signals.length;
     const variance = signals.reduce((sum, s) => sum + Math.pow(s - avgSignal, 2), 0) / signals.length;
     const consensus = Math.max(0, 1 - variance); // Lower variance = higher consensus
     score += consensus * 30;
-    
+
     // Data quality contributes 20% (all agents have data sources)
     const dataQuality = agents.filter(([_, report]) => report.data_source).length / agents.length;
     score += dataQuality * 20;
-    
+
     // Speed contributes 10% (faster is better, but not too fast)
     const speedScore = entry.elapsed_seconds < 10 ? (10 - entry.elapsed_seconds) / 10 : 0;
     score += speedScore * 10;
-    
+
     return Math.round(score);
   };
 
   const performanceScore = calculatePerformanceScore();
-  
+
   const getPerformanceColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
     if (score >= 60) return 'text-yellow-400';
@@ -493,11 +491,10 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-2">
                 <h2 className="text-3xl font-bold text-white">{entry.ticker}</h2>
-                <div className={`px-4 py-1 rounded-lg border font-semibold ${
-                  entry.recommendation === 'BUY' ? 'text-green-400 bg-green-500/20 border-green-500/50' :
-                  entry.recommendation === 'SELL' ? 'text-red-400 bg-red-500/20 border-red-500/50' :
-                  'text-yellow-400 bg-yellow-500/20 border-yellow-500/50'
-                }`}>
+                <div className={`px-4 py-1 rounded-lg border font-semibold ${entry.recommendation === 'BUY' ? 'text-green-400 bg-green-500/20 border-green-500/50' :
+                    entry.recommendation === 'SELL' ? 'text-red-400 bg-red-500/20 border-red-500/50' :
+                      'text-yellow-400 bg-yellow-500/20 border-yellow-500/50'
+                  }`}>
                   {entry.recommendation}
                 </div>
                 <div className={`text-2xl font-bold ${getPerformanceColor(performanceScore)}`}>
@@ -549,11 +546,10 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                   Risk Level
                   <InfoTooltip content="Assessment of investment risk based on signal agreement and market volatility. LOW: Agents agree, stable conditions. MEDIUM: Some disagreement or moderate volatility. HIGH: Conflicting signals or high uncertainty." />
                 </div>
-                <div className={`text-2xl font-bold ${
-                  entry.risk_level === 'LOW' ? 'text-green-400' :
-                  entry.risk_level === 'HIGH' ? 'text-red-400' :
-                  'text-yellow-400'
-                }`}>
+                <div className={`text-2xl font-bold ${entry.risk_level === 'LOW' ? 'text-green-400' :
+                    entry.risk_level === 'HIGH' ? 'text-red-400' :
+                      'text-yellow-400'
+                  }`}>
                   {entry.risk_level}
                 </div>
               </div>
@@ -649,7 +645,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
               <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                 <div className="text-sm text-slate-300 flex items-start gap-2">
                   <div className="flex-1">
-                    <span className="font-semibold text-blue-400">Workflow:</span> The orchestrator calls 5 specialized agents in parallel (Fundamental, Technical, Sentiment, Macro, Regulatory). 
+                    <span className="font-semibold text-blue-400">Workflow:</span> The orchestrator calls 5 specialized agents in parallel (Fundamental, Technical, Sentiment, Macro, Regulatory).
                     Their analysis reports are then passed to the <span className="font-semibold text-yellow-400">Predictor Agent</span>, which synthesizes all inputs and generates the final recommendation (BUY/HOLD/SELL).
                   </div>
                   <InfoTooltip content="The multi-agent workflow ensures comprehensive analysis by leveraging specialized expertise. Each agent analyzes different aspects independently, then the Predictor Agent combines their insights for a well-rounded recommendation." position="left" />
@@ -657,24 +653,23 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
               </div>
               <div className="space-y-4">
                 {agents.map(([agentId, report]) => {
-                  const agentInfo = AGENT_INFO[agentId] || { 
-                    name: agentId, 
-                    description: '', 
+                  const agentInfo = AGENT_INFO[agentId] || {
+                    name: agentId,
+                    description: '',
                     color: 'from-gray-500 to-gray-600',
                     role: 'Specialized agent',
                     prompt: 'Agent prompt not available',
                     inputDescription: 'Ticker symbol'
                   };
                   const isPredictor = agentId === 'predictor';
-                  
+
                   return (
                     <motion.div
                       key={agentId}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`glass-dark rounded-xl p-5 border-l-4 ${
-                        isPredictor ? 'border-yellow-500 bg-yellow-500/5' : 'border-blue-500'
-                      }`}
+                      className={`glass-dark rounded-xl p-5 border-l-4 ${isPredictor ? 'border-yellow-500 bg-yellow-500/5' : 'border-blue-500'
+                        }`}
                     >
                       {/* Agent Header */}
                       <div className="flex items-start justify-between mb-4">
@@ -757,7 +752,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                               <div className="font-bold text-lg text-blue-400">{report.confidence_score}%</div>
                             </div>
                           </div>
-                          
+
                           {report.data_source && (
                             <div className="pt-2 border-t border-slate-700/50">
                               <span className="text-xs text-slate-500 flex items-center gap-1">
@@ -767,14 +762,14 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                               <div className="text-xs font-mono text-cyan-400 mt-1">{report.data_source}</div>
                             </div>
                           )}
-                          
+
                           {report.summary && (
                             <div className="pt-2 border-t border-slate-700/50">
                               <span className="text-xs text-slate-500 mb-1 block">Summary:</span>
                               <p className="text-sm text-slate-300 leading-relaxed">{report.summary}</p>
                             </div>
                           )}
-                          
+
                           {report.key_metrics && Object.keys(report.key_metrics).length > 0 && (
                             <div className="pt-2 border-t border-slate-700/50">
                               <span className="text-xs text-slate-500 mb-2 block">Key Metrics:</span>
@@ -809,7 +804,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                             <span className="text-xs text-slate-500">Click to generate</span>
                           )}
                         </button>
-                        
+
                         {explanations[agentId]?.explanation && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
@@ -821,7 +816,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                             </p>
                           </motion.div>
                         )}
-                        
+
                         {explanations[agentId]?.error && (
                           <div className="mt-3 pt-3 border-t border-yellow-500/30">
                             <p className="text-xs text-yellow-400 flex items-center gap-2">
@@ -849,31 +844,28 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-white">Confidence Score</span>
-                    <span className={`text-lg font-bold ${
-                      entry.confidence >= 70 ? 'text-green-400' :
-                      entry.confidence >= 50 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
+                    <span className={`text-lg font-bold ${entry.confidence >= 70 ? 'text-green-400' :
+                        entry.confidence >= 50 ? 'text-yellow-400' :
+                          'text-red-400'
+                      }`}>
                       {entry.confidence}%
                     </span>
                   </div>
                   <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
-                    <div 
-                      className={`absolute inset-y-0 left-0 rounded-full ${
-                        entry.confidence >= 70 ? 'bg-green-500' :
-                        entry.confidence >= 50 ? 'bg-yellow-500' :
-                        'bg-red-500'
-                      }`}
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${entry.confidence >= 70 ? 'bg-green-500' :
+                          entry.confidence >= 50 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                        }`}
                       style={{ width: `${entry.confidence}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400">Benchmark: ≥70% (Excellent)</span>
-                    <span className={`font-semibold ${
-                      entry.confidence >= 70 ? 'text-green-400' :
-                      entry.confidence >= 50 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
+                    <span className={`font-semibold ${entry.confidence >= 70 ? 'text-green-400' :
+                        entry.confidence >= 50 ? 'text-yellow-400' :
+                          'text-red-400'
+                      }`}>
                       {entry.confidence >= 70 ? '✓ Exceeds' : entry.confidence >= 50 ? '~ Meets' : '✗ Below'}
                     </span>
                   </div>
@@ -894,14 +886,16 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                     </span>
                   </div>
                   <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
-                    <div 
+                    <div
                       className="absolute inset-y-0 left-0 bg-green-500 rounded-full"
-                      style={{ width: `${(() => {
-                        const signals = agents.map(([_, r]) => r.directional_signal);
-                        const avg = signals.reduce((a, b) => a + b, 0) / signals.length;
-                        const variance = signals.reduce((sum, s) => sum + Math.pow(s - avg, 2), 0) / signals.length;
-                        return (100 - (variance * 100));
-                      })()}%` }}
+                      style={{
+                        width: `${(() => {
+                          const signals = agents.map(([_, r]) => r.directional_signal);
+                          const avg = signals.reduce((a, b) => a + b, 0) / signals.length;
+                          const variance = signals.reduce((sum, s) => sum + Math.pow(s - avg, 2), 0) / signals.length;
+                          return (100 - (variance * 100));
+                        })()}%`
+                      }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -914,31 +908,28 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-white">Execution Speed</span>
-                    <span className={`text-lg font-bold ${
-                      entry.elapsed_seconds < 6 ? 'text-green-400' :
-                      entry.elapsed_seconds < 10 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
+                    <span className={`text-lg font-bold ${entry.elapsed_seconds < 6 ? 'text-green-400' :
+                        entry.elapsed_seconds < 10 ? 'text-yellow-400' :
+                          'text-red-400'
+                      }`}>
                       {entry.elapsed_seconds}s
                     </span>
                   </div>
                   <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
-                    <div 
-                      className={`absolute inset-y-0 left-0 rounded-full ${
-                        entry.elapsed_seconds < 6 ? 'bg-green-500' :
-                        entry.elapsed_seconds < 10 ? 'bg-yellow-500' :
-                        'bg-red-500'
-                      }`}
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${entry.elapsed_seconds < 6 ? 'bg-green-500' :
+                          entry.elapsed_seconds < 10 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                        }`}
                       style={{ width: `${Math.min(100, (10 - entry.elapsed_seconds) / 10 * 100)}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400">Benchmark: &lt;6s (Excellent)</span>
-                    <span className={`font-semibold ${
-                      entry.elapsed_seconds < 6 ? 'text-green-400' :
-                      entry.elapsed_seconds < 10 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
+                    <span className={`font-semibold ${entry.elapsed_seconds < 6 ? 'text-green-400' :
+                        entry.elapsed_seconds < 10 ? 'text-yellow-400' :
+                          'text-red-400'
+                      }`}>
                       {entry.elapsed_seconds < 6 ? '✓ Exceeds' : entry.elapsed_seconds < 10 ? '~ Meets' : '✗ Below'}
                     </span>
                   </div>
@@ -953,7 +944,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                     </span>
                   </div>
                   <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
-                    <div 
+                    <div
                       className="absolute inset-y-0 left-0 bg-green-500 rounded-full"
                       style={{ width: `${Math.round((agents.filter(([_, r]) => r.data_source).length / agents.length) * 100)}%` }}
                     />
@@ -1030,7 +1021,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                     <li>• A2A Protocol v0.3.0 communication</li>
                     <li>• Custom tools (Polygon, FRED, SEC, NewsAPI)</li>
                     <li>• MCP server integration</li>
-                    <li>• Function calling (Gemini API)</li>
+                    <li>• Function calling (Gemini / Groq LLMs)</li>
                     <li>• Structured JSON outputs</li>
                   </ul>
                 </div>
@@ -1113,7 +1104,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                   Visual Data Flow & Traceability
                   <InfoTooltip content="This diagram shows exactly how data flows through the system, from your input to the final recommendation. Each step is fully traceable and observable." />
                 </h3>
-                
+
                 <div className="relative">
                   {/* User Input */}
                   <motion.div
@@ -1190,7 +1181,7 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                         );
                       })}
                     </div>
-                    
+
                     {/* Data Sources Row */}
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -1255,11 +1246,10 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
                     transition={{ delay: 1.6 }}
                     className="flex justify-center"
                   >
-                    <div className={`px-6 py-4 rounded-lg shadow-lg border-2 ${
-                      entry.recommendation === 'BUY' ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-400' :
-                      entry.recommendation === 'SELL' ? 'bg-gradient-to-r from-red-500 to-rose-500 border-red-400' :
-                      'bg-gradient-to-r from-yellow-500 to-amber-500 border-yellow-400'
-                    }`}>
+                    <div className={`px-6 py-4 rounded-lg shadow-lg border-2 ${entry.recommendation === 'BUY' ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-400' :
+                        entry.recommendation === 'SELL' ? 'bg-gradient-to-r from-red-500 to-rose-500 border-red-400' :
+                          'bg-gradient-to-r from-yellow-500 to-amber-500 border-yellow-400'
+                      }`}>
                       <div className="flex items-center gap-2 text-white font-semibold">
                         <Target className="w-5 h-5" />
                         <span>Final Recommendation</span>
@@ -1313,12 +1303,12 @@ ${report.summary ? `Summary: ${report.summary}` : 'Review the metrics above for 
               {/* Summary */}
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/30">
                 <p className="text-sm text-slate-200 leading-relaxed">
-                  <span className="font-semibold text-blue-400">Summary:</span> This analysis demonstrates a complete multi-agent stock prediction system with 
-                  <span className="font-semibold text-white"> 7 specialized AI agents</span> working in parallel, 
-                  <span className="font-semibold text-white"> real-time data integration</span> from 4+ APIs, 
-                  <span className="font-semibold text-white"> full traceability</span> of the decision-making process, 
-                  <span className="font-semibold text-white"> comprehensive explainability</span> with human-readable insights, and 
-                  <span className="font-semibold text-white"> production-grade observability</span> metrics. 
+                  <span className="font-semibold text-blue-400">Summary:</span> This analysis demonstrates a complete multi-agent stock prediction system with
+                  <span className="font-semibold text-white"> 7 specialized AI agents</span> working in parallel,
+                  <span className="font-semibold text-white"> real-time data integration</span> from 4+ APIs,
+                  <span className="font-semibold text-white"> full traceability</span> of the decision-making process,
+                  <span className="font-semibold text-white"> comprehensive explainability</span> with human-readable insights, and
+                  <span className="font-semibold text-white"> production-grade observability</span> metrics.
                   All assignment requirements are met, including agent tools, context management, quality measurement, explainability, architecture, and monitoring capabilities.
                 </p>
               </div>

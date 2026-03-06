@@ -68,7 +68,7 @@ export default function OrchestratorCard({ ticker, status }: OrchestratorCardPro
           <p className="text-lg text-white font-semibold">{status.message}</p>
           <span className="text-sm font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">{status.progress}%</span>
         </div>
-        
+
         {/* Progress Bar */}
         <div className="relative h-3 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50">
           <motion.div
@@ -105,7 +105,7 @@ export default function OrchestratorCard({ ticker, status }: OrchestratorCardPro
         </div>
         <div className="glass-dark rounded-xl p-4 hover:bg-slate-800/60 transition-colors">
           <div className="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wider">LLM Model</div>
-          <div className="text-base font-bold text-green-400">Gemini 2.0</div>
+          <div className="text-base font-bold text-green-400">Gemini/Groq</div>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export default function OrchestratorCard({ ticker, status }: OrchestratorCardPro
               <motion.div
                 key={i}
                 className="w-2.5 h-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
-                animate={{ 
+                animate={{
                   scale: [1, 1.5, 1],
                   opacity: [0.5, 1, 0.5]
                 }}

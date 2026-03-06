@@ -31,7 +31,7 @@ load_dotenv()
 app = FastAPI(
     title="Stock Analysis Chatbot - Cloud Function Calling",
     description="Gemini API function calling with A2A agents on Google Cloud",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # CORS
@@ -88,45 +88,52 @@ def discover_external_agents():
                         "name": agent.get("name", agent_id),
                         "description": agent.get("description", ""),
                         "agent_card_url": agent_card_url,
-                        "category": agent.get("category", "general")
+                        "category": agent.get("category", "general"),
                     }
             print(f"✅ Discovered {len(EXTERNAL_AGENTS)} external agents")
     except Exception as e:
         print(f"⚠️  Could not connect to agent registry: {e}")
 
 
-def call_a2a_agent(agent_url: str, ticker: str, query: str = None) -> str:
+def call_a2a_agent(agent_url: str, ticker: str, query: Optional[str] = None) -> str:
     """Call an A2A agent via HTTP/JSONRPC (more reliable than native A2A for now)."""
     try:
-        prompt = query or f"Analyze {ticker} from your specialized perspective. Provide a directional_signal (-1 to +1) and confidence_score (0-100)."
-        
+        prompt = (
+            query
+            or f"Analyze {ticker} from your specialized perspective. Provide a directional_signal (-1 to +1) and confidence_score (0-100)."
+        )
+
         # Use HTTP/JSONRPC directly (more reliable than RemoteA2aAgent for message passing)
         jsonrpc_request = {
             "jsonrpc": "2.0",
             "method": "agent/invoke",
             "params": {
                 "message": prompt,
-                "session_id": f"session_{int(datetime.now().timestamp())}"
+                "session_id": f"session_{int(datetime.now().timestamp())}",
             },
-            "id": int(datetime.now().timestamp() * 1000)
+            "id": int(datetime.now().timestamp() * 1000),
         }
-        
+
         response = requests.post(
             agent_url,
             json=jsonrpc_request,
             headers={"Content-Type": "application/json"},
-            timeout=60
+            timeout=60,
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             if "result" in result:
                 return result["result"].get("response", json.dumps(result["result"]))
             elif "error" in result:
-                return json.dumps({"error": result["error"].get("message", "Unknown error")})
+                return json.dumps(
+                    {"error": result["error"].get("message", "Unknown error")}
+                )
             return json.dumps(result)
         else:
-            return json.dumps({"error": f"HTTP {response.status_code}: {response.text[:200]}"})
+            return json.dumps(
+                {"error": f"HTTP {response.status_code}: {response.text[:200]}"}
+            )
     except Exception as e:
         return json.dumps({"error": str(e)})
 
@@ -135,12 +142,12 @@ def call_external_agent(agent_id: str, prompt: str) -> str:
     """Call an external A2A agent via HTTP/JSONRPC."""
     if agent_id not in EXTERNAL_AGENTS:
         return json.dumps({"error": f"Agent {agent_id} not found"})
-    
+
     agent_info = EXTERNAL_AGENTS[agent_id]
     # Extract base URL from agent card URL
     card_url = agent_info["agent_card_url"]
     agent_url = card_url.replace("/.well-known/agent-card.json", "")
-    
+
     try:
         # Use HTTP/JSONRPC directly
         jsonrpc_request = {
@@ -148,27 +155,31 @@ def call_external_agent(agent_id: str, prompt: str) -> str:
             "method": "agent/invoke",
             "params": {
                 "message": prompt,
-                "session_id": f"ext_{int(datetime.now().timestamp())}"
+                "session_id": f"ext_{int(datetime.now().timestamp())}",
             },
-            "id": int(datetime.now().timestamp() * 1000)
+            "id": int(datetime.now().timestamp() * 1000),
         }
-        
+
         response = requests.post(
             agent_url,
             json=jsonrpc_request,
             headers={"Content-Type": "application/json"},
-            timeout=60
+            timeout=60,
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             if "result" in result:
                 return result["result"].get("response", json.dumps(result["result"]))
             elif "error" in result:
-                return json.dumps({"error": result["error"].get("message", "Unknown error")})
+                return json.dumps(
+                    {"error": result["error"].get("message", "Unknown error")}
+                )
             return json.dumps(result)
         else:
-            return json.dumps({"error": f"HTTP {response.status_code}: {response.text[:200]}"})
+            return json.dumps(
+                {"error": f"HTTP {response.status_code}: {response.text[:200]}"}
+            )
     except Exception as e:
         return json.dumps({"error": str(e)})
 
@@ -183,10 +194,13 @@ def get_function_declarations():
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_technical",
@@ -195,10 +209,13 @@ def get_function_declarations():
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_sentiment",
@@ -207,10 +224,13 @@ def get_function_declarations():
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_macro",
@@ -219,10 +239,13 @@ def get_function_declarations():
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_regulatory",
@@ -231,10 +254,13 @@ def get_function_declarations():
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "get_full_analysis",
@@ -244,41 +270,56 @@ def get_function_declarations():
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"}
                 },
-                "required": ["ticker"]
-            }
-        }
+                "required": ["ticker"],
+            },
+        },
     ]
-    
+
     # Add external agent functions
     for agent_id, agent_info in EXTERNAL_AGENTS.items():
-        functions.append({
-            "name": f"call_external_{agent_id}",
-            "description": f"{agent_info['description']} - External agent: {agent_info['name']}",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "prompt": {"type": "string", "description": "Query for the external agent"}
+        functions.append(
+            {
+                "name": f"call_external_{agent_id}",
+                "description": f"{agent_info['description']} - External agent: {agent_info['name']}",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string",
+                            "description": "Query for the external agent",
+                        }
+                    },
+                    "required": ["prompt"],
                 },
-                "required": ["prompt"]
             }
-        })
-    
+        )
+
     return functions
 
 
 FUNCTION_IMPLEMENTATIONS = {
-    "analyze_fundamentals": lambda args: call_a2a_agent(INTERNAL_AGENTS["fundamental"], args["ticker"], args.get("query")),
-    "analyze_technical": lambda args: call_a2a_agent(INTERNAL_AGENTS["technical"], args["ticker"], args.get("query")),
-    "analyze_sentiment": lambda args: call_a2a_agent(INTERNAL_AGENTS["sentiment"], args["ticker"], args.get("query")),
-    "analyze_macro": lambda args: call_a2a_agent(INTERNAL_AGENTS["macro"], args["ticker"], args.get("query")),
-    "analyze_regulatory": lambda args: call_a2a_agent(INTERNAL_AGENTS["regulatory"], args["ticker"], args.get("query")),
-    "get_full_analysis": lambda args: get_full_analysis(args["ticker"])
+    "analyze_fundamentals": lambda args: call_a2a_agent(
+        INTERNAL_AGENTS["fundamental"], args["ticker"], args.get("query")
+    ),
+    "analyze_technical": lambda args: call_a2a_agent(
+        INTERNAL_AGENTS["technical"], args["ticker"], args.get("query")
+    ),
+    "analyze_sentiment": lambda args: call_a2a_agent(
+        INTERNAL_AGENTS["sentiment"], args["ticker"], args.get("query")
+    ),
+    "analyze_macro": lambda args: call_a2a_agent(
+        INTERNAL_AGENTS["macro"], args["ticker"], args.get("query")
+    ),
+    "analyze_regulatory": lambda args: call_a2a_agent(
+        INTERNAL_AGENTS["regulatory"], args["ticker"], args.get("query")
+    ),
+    "get_full_analysis": lambda args: get_full_analysis(args["ticker"]),
 }
 
 
 def get_full_analysis(ticker: str) -> str:
     """Get comprehensive analysis from all agents."""
-    results = {}
+    results: Dict[str, Any] = {}
     for agent_type in ["fundamental", "technical", "sentiment", "macro", "regulatory"]:
         try:
             result = call_a2a_agent(INTERNAL_AGENTS[agent_type], ticker)
@@ -291,81 +332,184 @@ def get_full_analysis(ticker: str) -> str:
 def setup_external_agent_functions():
     """Setup function implementations for external agents."""
     for agent_id in EXTERNAL_AGENTS.keys():
+
         def make_impl(aid):
             return lambda args: call_external_agent(aid, args["prompt"])
+
         FUNCTION_IMPLEMENTATIONS[f"call_external_{agent_id}"] = make_impl(agent_id)
 
 
 def chat_with_function_calling(user_message: str) -> tuple[str, List[Dict]]:
     """Chat with Gemini using function calling."""
     functions = get_function_declarations()
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={GOOGLE_API_KEY}"
-    
-    function_calls_made = []
-    contents = [{"role": "user", "parts": [{"text": user_message}]}]
-    max_iterations = 5
-    
-    for iteration in range(max_iterations):
-        payload = {
-            "contents": contents,
-            "tools": [{"function_declarations": functions}],
-            "system_instruction": "You are a helpful stock analysis assistant. Use internal agents for stock analysis. Use external agents for additional intelligence when appropriate."
-        }
-        
-        response = requests.post(url, json=payload)
-        response.raise_for_status()
-        result = response.json()
-        
-        if "candidates" not in result or not result["candidates"]:
-            break
-        
-        candidate = result["candidates"][0]
-        if "content" not in candidate or "parts" not in candidate["content"]:
-            break
-        
-        parts = candidate["content"]["parts"]
-        function_call = None
-        
-        for part in parts:
-            if "functionCall" in part:
-                function_call = part["functionCall"]
+
+    ai_provider = os.environ.get("AI_PROVIDER", "gemini").lower()
+
+    if ai_provider == "groq":
+        try:
+            from groq import Groq
+        except ImportError:
+            raise ImportError(
+                "Groq is not installed. Please install it using 'pip install groq'."
+            )
+
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+        groq_tools = [{"type": "function", "function": f} for f in functions]
+        system_instruction = "You are a helpful stock analysis assistant. Use internal agents for stock analysis. Use external agents for additional intelligence when appropriate."
+
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": user_message},
+        ]
+
+        function_calls_made = []
+        max_iterations = 5
+
+        for _ in range(max_iterations):
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=messages,
+                tools=groq_tools,
+                tool_choice="auto",
+            )
+            msg_obj = response.choices[0].message
+
+            # Convert to dict for appending into history
+            msg_dict = msg_obj.model_dump(exclude_unset=True)
+            messages.append(msg_dict)
+
+            if not msg_obj.tool_calls:
                 break
-        
-        if not function_call:
-            break
-        
-        function_name = function_call.get("name", "")
-        function_args = function_call.get("args", {})
-        
-        function_calls_made.append({"name": function_name, "args": function_args})
-        
-        # Execute function
-        if function_name in FUNCTION_IMPLEMENTATIONS:
-            function_result = FUNCTION_IMPLEMENTATIONS[function_name](function_args)
+
+            for tool_call in msg_obj.tool_calls:
+                function_name = tool_call.function.name
+                try:
+                    function_args = (
+                        json.loads(tool_call.function.arguments)
+                        if tool_call.function.arguments
+                        else {}
+                    )
+                except:
+                    function_args = {}
+
+                function_calls_made.append(
+                    {"name": function_name, "args": function_args}
+                )
+
+                # Execute function
+                if function_name in FUNCTION_IMPLEMENTATIONS:
+                    function_result = FUNCTION_IMPLEMENTATIONS[function_name](
+                        function_args
+                    )
+                else:
+                    function_result = json.dumps(
+                        {"error": f"Unknown function: {function_name}"}
+                    )
+
+                messages.append(
+                    {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": function_name,
+                        "content": function_result,
+                    }
+                )
+
+        # Get final response
+        if function_calls_made and messages[-1].get("role") == "tool":
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b", messages=messages
+            )
+            response_text = response.choices[0].message.content
         else:
-            function_result = json.dumps({"error": f"Unknown function: {function_name}"})
-        
-        contents.append({"role": "model", "parts": [{"functionCall": function_call}]})
-        contents.append({
-            "role": "function",
-            "parts": [{"functionResponse": {"name": function_name, "response": function_result}}]
-        })
-    
-    # Get final response
-    if function_calls_made:
-        payload = {"contents": contents}
-        response = requests.post(url, json=payload)
-        response.raise_for_status()
-        result = response.json()
-    
-    if "candidates" in result and result["candidates"]:
-        parts = result["candidates"][0]["content"]["parts"]
-        response_text = "".join([part.get("text", "") for part in parts])
+            response_text = messages[-1].get("content", "")
+
+        if not response_text:
+            response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
+
+        return response_text, function_calls_made
+
     else:
-        response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
-    
-    return response_text, function_calls_made
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={GOOGLE_API_KEY}"
+
+        function_calls_made = []
+        contents = [{"role": "user", "parts": [{"text": user_message}]}]
+        max_iterations = 5
+
+        for iteration in range(max_iterations):
+            payload = {
+                "contents": contents,
+                "tools": [{"function_declarations": functions}],
+                "system_instruction": "You are a helpful stock analysis assistant. Use internal agents for stock analysis. Use external agents for additional intelligence when appropriate.",
+            }
+
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+
+            if "candidates" not in result or not result["candidates"]:
+                break
+
+            candidate = result["candidates"][0]
+            if "content" not in candidate or "parts" not in candidate["content"]:
+                break
+
+            parts = candidate["content"]["parts"]
+            function_call = None
+
+            for part in parts:
+                if "functionCall" in part:
+                    function_call = part["functionCall"]
+                    break
+
+            if not function_call:
+                break
+
+            function_name = function_call.get("name", "")
+            function_args = function_call.get("args", {})
+
+            function_calls_made.append({"name": function_name, "args": function_args})
+
+            # Execute function
+            if function_name in FUNCTION_IMPLEMENTATIONS:
+                function_result = FUNCTION_IMPLEMENTATIONS[function_name](function_args)
+            else:
+                function_result = json.dumps(
+                    {"error": f"Unknown function: {function_name}"}
+                )
+
+            contents.append(
+                {"role": "model", "parts": [{"functionCall": function_call}]}
+            )
+            contents.append(
+                {
+                    "role": "function",
+                    "parts": [
+                        {
+                            "functionResponse": {
+                                "name": function_name,
+                                "response": function_result,
+                            }
+                        }
+                    ],
+                }
+            )
+
+        # Get final response
+        if function_calls_made:
+            payload = {"contents": contents}
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+
+        if "candidates" in result and result["candidates"]:
+            parts = result["candidates"][0]["content"]["parts"]
+            response_text = "".join([part.get("text", "") for part in parts])
+        else:
+            response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
+
+        return response_text, function_calls_made
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -376,15 +520,16 @@ async def root():
         os.path.join(os.path.dirname(__file__), "chatbot_ui.html"),
         "chatbot_ui.html",
         "/app/chatbot_ui.html",
-        os.path.join(os.getcwd(), "chatbot_ui.html")
+        os.path.join(os.getcwd(), "chatbot_ui.html"),
     ]
-    
+
     for html_path in possible_paths:
         if os.path.exists(html_path):
             return FileResponse(html_path, media_type="text/html")
-    
+
     # If file not found, return inline HTML
-    return HTMLResponse(content="""
+    return HTMLResponse(
+        content="""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -601,7 +746,8 @@ async def root():
     </script>
 </body>
 </html>
-    """)
+    """
+    )
 
 
 @app.get("/api/info")
@@ -616,9 +762,9 @@ async def api_info():
             "chat": "/chat (POST)",
             "external_agents": "/agents/external",
             "discover_agents": "/agents/discover (POST)",
-            "docs": "/docs"
+            "docs": "/docs",
         },
-        "external_agents_count": len(EXTERNAL_AGENTS)
+        "external_agents_count": len(EXTERNAL_AGENTS),
     }
 
 
@@ -635,9 +781,7 @@ async def chat(request: ChatRequest):
         response_text, function_calls = chat_with_function_calling(request.message)
         session_id = request.session_id or f"session_{int(datetime.now().timestamp())}"
         return ChatResponse(
-            response=response_text,
-            function_calls=function_calls,
-            session_id=session_id
+            response=response_text, function_calls=function_calls, session_id=session_id
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -666,6 +810,6 @@ async def startup():
 
 if __name__ == "__main__":
     import uvicorn
+
     port = int(os.getenv("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
-

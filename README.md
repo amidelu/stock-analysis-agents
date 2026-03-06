@@ -74,7 +74,7 @@ Six A2A-compliant agents run as independent microservices:
 - Each agent exposes an agent card at `/.well-known/agent-card.json`
 - Communication via JSONRPC transport (A2A Protocol v0.3.0)
 - Agents run on ports 8001-8006, independently scalable
-- Each agent uses Gemini models with domain-specific prompts
+- Each agent uses Gemini or Groq models with domain-specific prompts
 
 #### Data Integration Layer
 Custom tools wrap real financial APIs:
@@ -167,7 +167,7 @@ The system delivers significant value for enterprise stock analysis workflows:
 - **Production-Ready**: Fully deployed and scalable on Google Cloud
 
 **Cost Efficiency**:
-- Cloud deployment: ~$0.02-0.05 per analysis (primarily Gemini API costs)
+- Cloud deployment: ~$0.02-0.05 per analysis (primarily LLM API costs)
 - Auto-scaling: Scales to zero when idle, pay only for usage
 - Free tier available: $0-5/month for light usage
 
@@ -254,12 +254,17 @@ jupyter notebook
 
 ### Required Keys
 
-#### 1. **GOOGLE_API_KEY** (Required)
+#### 1. **GOOGLE_API_KEY** (Required if using Gemini)
 - **Purpose:** Powers all 6 AI agents using Gemini models
 - **Get it:** https://aistudio.google.com/apikey
 - **Cost:** Free tier available
 
-#### 2. **POLYGON_API_KEY** (Required)
+#### 2. **GROQ_API_KEY** (Required if using Groq)
+- **Purpose:** Powers all 6 AI agents using Groq models (e.g. openai/gpt-oss-20b)
+- **Get it:** https://console.groq.com/keys
+- **Cost:** Free tier available
+
+#### 3. **POLYGON_API_KEY** (Required)
 - **Purpose:** Stock prices, fundamentals, technicals, and news
 - **Get it:** https://polygon.io/dashboard/api-keys
 - **Cost:** Paid subscription required
@@ -280,7 +285,9 @@ jupyter notebook
 
 Edit `.env` file:
 ```bash
+AI_PROVIDER=gemini  # Set to 'gemini' or 'groq'
 GOOGLE_API_KEY=your_google_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 POLYGON_API_KEY=your_polygon_api_key_here
 FRED_API_KEY=your_fred_api_key_here  # Optional but recommended
 NEWS_API_KEY=your_news_api_key_here  # Optional
@@ -387,7 +394,7 @@ python main.py --ticker AAPL
 ## 🎓 Technologies Used
 
 - **Google ADK** - Agent Development Kit
-- **Gemini 2.0 Flash** - LLM for all agents
+- **Gemini / Groq** - LLM for all agents
 - **A2A Protocol v0.3.0** - Agent-to-Agent communication
 - **Google Cloud Run** - Production deployment
 - **Next.js** - Frontend framework
@@ -422,6 +429,6 @@ Kaggle 5-Day Agents Intensive - Capstone Project
 
 ---
 
-**Built with ❤️ using Google ADK, Gemini, and the A2A Protocol**
+**Built with ❤️ using Google ADK, Gemini/Groq, and the A2A Protocol**
 
 **Track**: Enterprise Agents

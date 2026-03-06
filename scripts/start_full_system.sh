@@ -29,7 +29,7 @@ echo "────────────────────────�
 # Check Python venv
 if [ ! -d "venv" ]; then
     echo -e "${YELLOW}⚠️  Virtual environment not found. Creating...${NC}"
-    python3.11 -m venv venv
+    python -m venv venv
     ./venv/bin/pip install --upgrade pip
     ./venv/bin/pip install -r requirements.txt
 fi

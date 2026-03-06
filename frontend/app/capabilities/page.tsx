@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircle, Award, Code, Database, Brain, Target, 
+import {
+  CheckCircle, Award, Code, Database, Brain, Target,
   Layers, Shield, Zap, MessageSquare, BarChart3, TrendingUp,
   ChevronDown, ChevronRight
 } from 'lucide-react';
@@ -57,7 +57,7 @@ export default function CapabilitiesPage() {
         '✅ Agent Context: Each agent maintains domain knowledge',
         '✅ RAG Knowledge Base: Prompts with embedded expertise',
         '✅ Context Caching: Reusable market data',
-        '✅ Long Context: Gemini 1M token window utilized',
+        '✅ Flexible LLM Support: Gemini & Groq APIs integrated',
       ],
       demonstrations: [
         'History page tracks all past analyses',

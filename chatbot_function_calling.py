@@ -37,13 +37,13 @@ AGENT_URLS = {
     "sentiment": "http://localhost:8003",
     "macro": "http://localhost:8004",
     "regulatory": "http://localhost:8005",
-    "predictor": "http://localhost:8006"
+    "predictor": "http://localhost:8006",
 }
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 
-def call_a2a_agent(agent_type: str, ticker: str, query: str = None) -> str:
+def call_a2a_agent(agent_type: str, ticker: str, query: Optional[str] = None) -> str:
     """
     Call an A2A agent synchronously.
     This function will be exposed to Gemini as a tool.
@@ -51,28 +51,25 @@ def call_a2a_agent(agent_type: str, ticker: str, query: str = None) -> str:
     try:
         if agent_type not in AGENT_URLS:
             return json.dumps({"error": f"Unknown agent type: {agent_type}"})
-        
+
         base_url = AGENT_URLS[agent_type]
         card_url = f"{base_url}/.well-known/agent-card.json"
-        
+
         # Create remote agent
-        agent = RemoteA2aAgent(
-            name=f"{agent_type}_agent",
-            agent_card=card_url
-        )
-        
+        agent = RemoteA2aAgent(name=f"{agent_type}_agent", agent_card=card_url)
+
         # Create invocation context
         session_service = InMemorySessionService()
         session_id = f"{ticker}_{int(datetime.now().timestamp())}"
         session = session_service.create_session(session_id=session_id)
-        
+
         context = InvocationContext(
             session_service=session_service,
             invocation_id=f"inv_{int(datetime.now().timestamp())}",
             agent=agent,
-            session=session
+            session=session,
         )
-        
+
         # Build prompt
         if query:
             prompt = f"{query} for {ticker}"
@@ -83,60 +80,72 @@ def call_a2a_agent(agent_type: str, ticker: str, query: str = None) -> str:
                 "sentiment": f"Analyze recent news sentiment for {ticker}. Provide overall sentiment, key events, directional_signal, and confidence_score.",
                 "macro": f"Analyze current macro-economic conditions and their impact on stocks like {ticker}. Provide market_regime, directional_signal, and confidence_score.",
                 "regulatory": f"Check for regulatory risks and industry trends for {ticker}. Review SEC filings and provide directional_signal and confidence_score.",
-                "predictor": f"Generate final prediction for {ticker} based on all analysis."
+                "predictor": f"Generate final prediction for {ticker} based on all analysis.",
             }
             prompt = prompts.get(agent_type, f"Analyze {ticker}")
-        
+
         # Run agent
         async def run_agent():
             full_response = ""
             async for event in agent.run_async(context):
-                if hasattr(event, 'content'):
+                if hasattr(event, "content"):
                     full_response += str(event.content)
-                elif hasattr(event, 'text'):
+                elif hasattr(event, "text"):
                     full_response += event.text
             return full_response
-        
+
         response = asyncio.run(run_agent())
         return response
-        
+
     except Exception as e:
         return json.dumps({"error": str(e), "agent": agent_type, "ticker": ticker})
 
 
 def get_full_analysis(ticker: str) -> str:
     """Get comprehensive analysis from all agents."""
-    results = {}
-    
+    results: Dict[str, Any] = {}
+
     for agent_type in ["fundamental", "technical", "sentiment", "macro", "regulatory"]:
         try:
             result = call_a2a_agent(agent_type, ticker)
             results[agent_type] = result
         except Exception as e:
             results[agent_type] = {"error": str(e)}
-    
+
     # Get final prediction
     try:
         prediction = call_a2a_agent("predictor", ticker)
         results["prediction"] = prediction
     except Exception as e:
         results["prediction"] = {"error": str(e)}
-    
+
     return json.dumps(results, indent=2)
 
 
 # Function implementations map
 FUNCTION_IMPLEMENTATIONS = {
-    "analyze_fundamentals": lambda args: call_a2a_agent("fundamental", args["ticker"], args.get("query")),
-    "analyze_technical": lambda args: call_a2a_agent("technical", args["ticker"], args.get("query")),
-    "analyze_sentiment": lambda args: call_a2a_agent("sentiment", args["ticker"], args.get("query")),
-    "analyze_macro": lambda args: call_a2a_agent("macro", args["ticker"], args.get("query")),
-    "analyze_regulatory": lambda args: call_a2a_agent("regulatory", args["ticker"], args.get("query")),
-    "get_full_analysis": lambda args: get_full_analysis(args["ticker"])
+    "analyze_fundamentals": lambda args: call_a2a_agent(
+        "fundamental", args["ticker"], args.get("query")
+    ),
+    "analyze_technical": lambda args: call_a2a_agent(
+        "technical", args["ticker"], args.get("query")
+    ),
+    "analyze_sentiment": lambda args: call_a2a_agent(
+        "sentiment", args["ticker"], args.get("query")
+    ),
+    "analyze_macro": lambda args: call_a2a_agent(
+        "macro", args["ticker"], args.get("query")
+    ),
+    "analyze_regulatory": lambda args: call_a2a_agent(
+        "regulatory", args["ticker"], args.get("query")
+    ),
+    "get_full_analysis": lambda args: get_full_analysis(args["ticker"]),
 }
 
 
-def chat_with_function_calling(user_message: str, chat_history: List[Dict] = None) -> tuple[str, List[Dict], List[Dict]]:
+def chat_with_function_calling(
+    user_message: str, chat_history: List[Dict] = None
+) -> tuple[str, List[Dict], List[Dict]]:
     """
     Chat with Gemini using function calling via REST API.
     Returns: (response_text, updated_history, function_calls_made)
@@ -149,11 +158,17 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "ticker": {"type": "string", "description": "Stock ticker symbol (e.g., 'AAPL', 'GOOGL')"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "ticker": {
+                        "type": "string",
+                        "description": "Stock ticker symbol (e.g., 'AAPL', 'GOOGL')",
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_technical",
@@ -162,10 +177,13 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_sentiment",
@@ -174,10 +192,13 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_macro",
@@ -186,10 +207,13 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "analyze_regulatory",
@@ -198,10 +222,13 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
                 "type": "object",
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"},
-                    "query": {"type": "string", "description": "Optional specific question"}
+                    "query": {
+                        "type": "string",
+                        "description": "Optional specific question",
+                    },
                 },
-                "required": ["ticker"]
-            }
+                "required": ["ticker"],
+            },
         },
         {
             "name": "get_full_analysis",
@@ -211,136 +238,247 @@ def chat_with_function_calling(user_message: str, chat_history: List[Dict] = Non
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock ticker symbol"}
                 },
-                "required": ["ticker"]
-            }
-        }
+                "required": ["ticker"],
+            },
+        },
     ]
-    
+
+    ai_provider = os.environ.get("AI_PROVIDER", "gemini").lower()
+
     # Build conversation history
     if chat_history is None:
         chat_history = []
-    
-    # Convert to Gemini format
-    contents = []
-    for msg in chat_history:
-        if isinstance(msg, dict):
-            role = msg.get("role", "")
-            content = msg.get("content", "")
-            if role == "user":
-                contents.append({"role": "user", "parts": [{"text": content}]})
-            elif role == "model":
-                contents.append({"role": "model", "parts": [{"text": content}]})
-    
-    # Add current user message
-    contents.append({"role": "user", "parts": [{"text": user_message}]})
-    
-    # Call Gemini API with function calling
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={GOOGLE_API_KEY}"
-    
-    function_calls_made = []
-    max_iterations = 5
-    
-    for iteration in range(max_iterations):
-        payload = {
-            "contents": contents,
-            "tools": [{"function_declarations": functions}],
-            "system_instruction": "You are a helpful stock analysis assistant. When users ask about stocks, intelligently call the appropriate functions. Be conversational."
-        }
-        
-        response = requests.post(url, json=payload)
-        response.raise_for_status()
-        result = response.json()
-        
-        # Check for function calls
-        if "candidates" not in result or not result["candidates"]:
-            break
-        
-        candidate = result["candidates"][0]
-        if "content" not in candidate or "parts" not in candidate["content"]:
-            break
-        
-        parts = candidate["content"]["parts"]
-        function_call = None
-        
-        for part in parts:
-            if "functionCall" in part:
-                function_call = part["functionCall"]
+
+    if ai_provider == "groq":
+        try:
+            from groq import Groq
+        except ImportError:
+            raise ImportError(
+                "Groq is not installed. Please install it with 'pip install groq'."
+            )
+
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+        groq_tools = [{"type": "function", "function": f} for f in functions]
+        system_instruction = "You are a helpful stock analysis assistant. When users ask about stocks, intelligently call the appropriate functions. Be conversational."
+
+        messages = [{"role": "system", "content": system_instruction}]
+
+        for msg in chat_history:
+            if isinstance(msg, dict):
+                role = (
+                    "assistant" if msg.get("role") in ("model", "assistant") else "user"
+                )
+                content = msg.get("content", "")
+                if content:
+                    messages.append({"role": role, "content": content})
+
+        messages.append({"role": "user", "content": user_message})
+
+        function_calls_made = []
+        max_iterations = 5
+
+        for _ in range(max_iterations):
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=messages,
+                tools=groq_tools,
+                tool_choice="auto",
+            )
+            msg_obj = response.choices[0].message
+
+            # Convert to dict for appending into history
+            msg_dict = msg_obj.model_dump(exclude_unset=True)
+            messages.append(msg_dict)
+
+            if not msg_obj.tool_calls:
                 break
-        
-        if not function_call:
-            # No function call, we're done
-            break
-        
-        # Extract function call details
-        function_name = function_call.get("name", "")
-        function_args = function_call.get("args", {})
-        
-        function_calls_made.append({
-            "name": function_name,
-            "args": function_args
-        })
-        
-        # Execute function
-        if function_name in FUNCTION_IMPLEMENTATIONS:
-            function_result = FUNCTION_IMPLEMENTATIONS[function_name](function_args)
+
+            for tool_call in msg_obj.tool_calls:
+                function_name = tool_call.function.name
+                try:
+                    function_args = (
+                        json.loads(tool_call.function.arguments)
+                        if tool_call.function.arguments
+                        else {}
+                    )
+                except:
+                    function_args = {}
+
+                function_calls_made.append(
+                    {"name": function_name, "args": function_args}
+                )
+
+                if function_name in FUNCTION_IMPLEMENTATIONS:
+                    function_result = FUNCTION_IMPLEMENTATIONS[function_name](
+                        function_args
+                    )
+                else:
+                    function_result = json.dumps(
+                        {"error": f"Unknown function: {function_name}"}
+                    )
+
+                messages.append(
+                    {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": function_name,
+                        "content": function_result,
+                    }
+                )
+
+        # Final text response
+        if function_calls_made and messages[-1].get("role") == "tool":
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-20b", messages=messages
+            )
+            response_text = response.choices[0].message.content
         else:
-            function_result = json.dumps({"error": f"Unknown function: {function_name}"})
-        
-        # Add function call and result to conversation
-        contents.append({
-            "role": "model",
-            "parts": [{"functionCall": function_call}]
-        })
-        contents.append({
-            "role": "function",
-            "parts": [{
-                "functionResponse": {
-                    "name": function_name,
-                    "response": function_result
-                }
-            }]
-        })
-    
-    # Get final text response
-    if function_calls_made:
-        # Final response after function calls
-        payload = {
-            "contents": contents,
-            "system_instruction": "You are a helpful stock analysis assistant. Summarize the analysis results in a conversational way."
-        }
-        response = requests.post(url, json=payload)
-        response.raise_for_status()
-        result = response.json()
-    
-    # Extract text response
-    if "candidates" in result and result["candidates"]:
-        parts = result["candidates"][0]["content"]["parts"]
-        response_text = ""
-        for part in parts:
-            if "text" in part:
-                response_text += part["text"]
+            response_text = messages[-1].get("content")
+
+        if not response_text:
+            response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
+
+        updated_history = [
+            m for m in chat_history if isinstance(m, dict) and m.get("content")
+        ]
+        updated_history.extend(
+            [
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": response_text},
+            ]
+        )
+
+        return response_text, updated_history, function_calls_made
+
     else:
-        response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
-    
-    # Update history
-    updated_history = []
-    for msg in chat_history:
-        if isinstance(msg, dict) and msg.get("content"):
-            updated_history.append(msg)
-    
-    updated_history.extend([
-        {"role": "user", "content": user_message},
-        {"role": "assistant", "content": response_text}
-    ])
-    
-    return response_text, updated_history, function_calls_made
+        # Gemini logic
+        contents: List[Dict[str, Any]] = []
+        for msg in chat_history:
+            if isinstance(msg, dict):
+                role = msg.get("role", "")
+                content = msg.get("content", "")
+                if role == "user":
+                    contents.append({"role": "user", "parts": [{"text": content}]})
+                elif role in ("model", "assistant"):
+                    contents.append({"role": "model", "parts": [{"text": content}]})
+
+        # Add current user message
+        contents.append({"role": "user", "parts": [{"text": user_message}]})
+
+        # Call Gemini API with function calling
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={GOOGLE_API_KEY}"
+
+        function_calls_made = []
+        max_iterations = 5
+
+        for iteration in range(max_iterations):
+            payload = {
+                "contents": contents,
+                "tools": [{"function_declarations": functions}],
+                "system_instruction": "You are a helpful stock analysis assistant. When users ask about stocks, intelligently call the appropriate functions. Be conversational.",
+            }
+
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+
+            # Check for function calls
+            if "candidates" not in result or not result["candidates"]:
+                break
+
+            candidate = result["candidates"][0]
+            if "content" not in candidate or "parts" not in candidate["content"]:
+                break
+
+            parts = candidate["content"]["parts"]
+            function_call = None
+
+            for part in parts:
+                if "functionCall" in part:
+                    function_call = part["functionCall"]
+                    break
+
+            if not function_call:
+                # No function call, we're done
+                break
+
+            # Extract function call details
+            if not function_call:
+                continue
+            function_name = function_call.get("name", "")
+            function_args = function_call.get("args", {})
+
+            function_calls_made.append({"name": function_name, "args": function_args})
+
+            # Execute function
+            if function_name in FUNCTION_IMPLEMENTATIONS:
+                function_result = FUNCTION_IMPLEMENTATIONS[function_name](function_args)
+            else:
+                function_result = json.dumps(
+                    {"error": f"Unknown function: {function_name}"}
+                )
+
+            # Add function call and result to conversation
+            contents.append(
+                {"role": "model", "parts": [{"functionCall": function_call}]}
+            )
+            contents.append(
+                {
+                    "role": "function",
+                    "parts": [
+                        {
+                            "functionResponse": {
+                                "name": function_name,
+                                "response": function_result,
+                            }
+                        }
+                    ],
+                }
+            )
+
+        # Get final text response
+        if function_calls_made:
+            # Final response after function calls
+            payload = {
+                "contents": contents,
+                "system_instruction": "You are a helpful stock analysis assistant. Summarize the analysis results in a conversational way.",
+            }
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+
+        # Extract text response
+        if "candidates" in result and result["candidates"]:
+            parts = result["candidates"][0]["content"]["parts"]
+            response_text = ""
+            for part in parts:
+                if "text" in part:
+                    response_text += str(part.get("text", ""))
+        else:
+            response_text = f"I analyzed your request and called {len(function_calls_made)} function(s)."
+
+        # Update history
+        updated_history = []
+        for msg in chat_history:
+            if isinstance(msg, dict) and msg.get("content"):
+                updated_history.append(msg)
+
+        updated_history.extend(
+            [
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": response_text},
+            ]
+        )
+
+        return response_text, updated_history, function_calls_made
 
 
 # Streamlit UI
 st.set_page_config(
     page_title="Stock Analysis Chatbot - Function Calling Demo",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
 )
 
 st.title("🤖 Stock Analysis Chatbot")
@@ -350,7 +488,8 @@ st.markdown("---")
 # Sidebar with info
 with st.sidebar:
     st.header("📋 Function Calling Demo")
-    st.markdown("""
+    st.markdown(
+        """
     **Assessment Criteria: Function Calling**
     
     This chatbot demonstrates:
@@ -366,17 +505,20 @@ with st.sidebar:
     4. `analyze_macro(ticker)`
     5. `analyze_regulatory(ticker)`
     6. `get_full_analysis(ticker)`
-    """)
-    
+    """
+    )
+
     st.markdown("---")
     st.markdown("**Example Questions:**")
-    st.code("""
+    st.code(
+        """
     Analyze AAPL fundamentals
     What's the technical outlook for GOOGL?
     Get full analysis of MSFT
     Check sentiment for TSLA
-    """)
-    
+    """
+    )
+
     # Agent status check
     st.markdown("---")
     st.markdown("**Agent Status:**")
@@ -384,10 +526,12 @@ with st.sidebar:
     for name, url in AGENT_URLS.items():
         try:
             resp = requests.get(f"{url}/.well-known/agent-card.json", timeout=2)
-            agent_status[name] = "✅ Online" if resp.status_code == 200 else "❌ Offline"
+            agent_status[name] = (
+                "✅ Online" if resp.status_code == 200 else "❌ Offline"
+            )
         except:
             agent_status[name] = "❌ Offline"
-    
+
     for name, status in agent_status.items():
         st.text(f"{name}: {status}")
 
@@ -405,15 +549,15 @@ for i, msg in enumerate(st.session_state.chat_history):
     else:
         with st.chat_message("assistant"):
             st.write(msg["content"])
-            
+
             # Show function calls if any
-            if i < len(st.session_state.function_calls) and st.session_state.function_calls[i]:
+            if (
+                i < len(st.session_state.function_calls)
+                and st.session_state.function_calls[i]
+            ):
                 with st.expander("🔧 Function Calls Made"):
                     for fc in st.session_state.function_calls[i]:
-                        st.json({
-                            "function": fc["name"],
-                            "arguments": fc["args"]
-                        })
+                        st.json({"function": fc["name"], "arguments": fc["args"]})
 
 # User input
 user_input = st.chat_input("Ask about a stock (e.g., 'Analyze AAPL fundamentals')")
@@ -421,40 +565,45 @@ user_input = st.chat_input("Ask about a stock (e.g., 'Analyze AAPL fundamentals'
 if user_input:
     # Add user message to chat
     st.session_state.chat_history.append({"role": "user", "content": user_input})
-    
+
     # Show user message
     with st.chat_message("user"):
         st.write(user_input)
-    
+
     # Generate response
     with st.chat_message("assistant"):
         with st.spinner("Thinking and calling functions..."):
             try:
-                response_text, updated_history, function_calls = chat_with_function_calling(
-                    user_input,
-                    st.session_state.chat_history[:-1]  # Exclude current user message
+                response_text, updated_history, function_calls = (
+                    chat_with_function_calling(
+                        user_input,
+                        st.session_state.chat_history[
+                            :-1
+                        ],  # Exclude current user message
+                    )
                 )
-                
+
                 st.write(response_text)
-                
+
                 # Show function calls
                 if function_calls:
                     with st.expander("🔧 Function Calls Made (Function Calling Demo)"):
                         st.markdown("**Functions called by Gemini:**")
                         for fc in function_calls:
-                            st.json({
-                                "function": fc["name"],
-                                "arguments": fc["args"]
-                            })
-                        st.success(f"✅ {len(function_calls)} function call(s) executed")
-                
+                            st.json({"function": fc["name"], "arguments": fc["args"]})
+                        st.success(
+                            f"✅ {len(function_calls)} function call(s) executed"
+                        )
+
                 # Update session state
                 st.session_state.chat_history = updated_history
                 st.session_state.function_calls.append(function_calls)
-                
+
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-                st.session_state.chat_history.append({"role": "assistant", "content": f"Error: {str(e)}"})
+                st.session_state.chat_history.append(
+                    {"role": "assistant", "content": f"Error: {str(e)}"}
+                )
                 st.session_state.function_calls.append([])
 
 # Footer
